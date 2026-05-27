@@ -1,0 +1,13 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+torch>=2.2
+transformers>=4.41
+peft>=0.10
+accelerate>=0.29
+bitsandbytes>=0.43
+sentence-transformers>=2.7
+langchain>=0.2
+langchain-community>=0.2
+langchain-huggingface>=0.0.3
+faiss-cpu>=1.8

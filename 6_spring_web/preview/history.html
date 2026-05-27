@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Diagnosis History · Law-Lens</title>
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="brand"><a href="index.html">Law-Lens</a></div>
+    <nav>
+        <a href="index.html">진단</a>
+        <a href="history.html">이력</a>
+        <a href="index.html" class="cta">Try Demo</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <div class="inner">
+        <span class="eyebrow">Diagnosis History</span>
+        <h1>누적된 분석,<br><em>패턴을 드러냅니다.</em></h1>
+        <p class="lead">진단 이력을 조항별로 집계해 서비스 사용 패턴과 위반 빈도를 시각화합니다.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="inner">
+        <span class="eyebrow">By Article</span>
+        <h2>조항별 진단 분포.</h2>
+        <div class="metrics">
+            <div><span>제3조 · 서면</span><strong>14</strong></div>
+            <div><span>제11조 · 감액</span><strong>27</strong></div>
+            <div><span>제13조 · 지연지급</span><strong>9</strong></div>
+            <div><span>제12조의3 · 기술유용</span><strong>5</strong></div>
+        </div>
+    </div>
+</section>
+
+<section class="container">
+    <span class="eyebrow" style="display:block;font-size:0.78rem;color:#8A8A8A;letter-spacing:0.22em;margin-bottom:1.2rem;text-transform:uppercase;font-weight:600;">Recent Records</span>
+    <h2>최근 진단.</h2>
+
+    <table class="history">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>요청 시각</th>
+            <th>조항</th>
+            <th>사실관계</th>
+            <th>응답</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>55</td>
+            <td>05-26 14:32</td>
+            <td><span class="badge">제11조</span></td>
+            <td class="truncate">원사업자 A가 경영난을 이유로 수급사업자 B에게 줄 대금 10%를 사전 협의 없이 삭감하여 지급함.</td>
+            <td>2,418 ms</td>
+        </tr>
+        <tr>
+            <td>54</td>
+            <td>05-26 14:18</td>
+            <td><span class="badge">제3조</span></td>
+            <td class="truncate">하도급 계약서를 작업 시작 전까지 발급하지 않고 구두로만 발주 지시함.</td>
+            <td>2,301 ms</td>
+        </tr>
+        <tr>
+            <td>53</td>
+            <td>05-26 13:55</td>
+            <td><span class="badge">제12조의3</span></td>
+            <td class="truncate">B사의 기술 자료를 협의 없이 제3자에 유출함.</td>
+            <td>2,612 ms</td>
+        </tr>
+        <tr>
+            <td>52</td>
+            <td>05-26 13:40</td>
+            <td><span class="badge">제13조</span></td>
+            <td class="truncate">목적물 수령일로부터 90일이 지났으나 대금을 지급하지 않음.</td>
+            <td>2,158 ms</td>
+        </tr>
+        <tr>
+            <td>51</td>
+            <td>05-26 13:21</td>
+            <td><span class="muted">—</span></td>
+            <td class="truncate">계약 관련 일반 문의 사항입니다.</td>
+            <td>1,884 ms</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <nav class="pager">
+        <span>1 / 3</span>
+        <a href="history.html">다음 →</a>
+    </nav>
+</section>
+
+<section class="cta-band">
+    <h2>새로운 사실관계,<br><em>지금 진단하세요.</em></h2>
+    <a href="index.html" class="primary">진단 시작하기</a>
+</section>
+
+<footer class="footer">
+    <div class="brand-foot">Law-Lens</div>
+    <div>© 2026 Widea AI · Spring Boot × Llama-3 QLoRA Inference</div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>진단 결과 · Law-Lens AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="topbar">
+    <div class="brand"><a th:href="@{/}">LAW-LENS.</a></div>
+    <nav>
+        <a th:href="@{/}">진단</a>
+        <a th:href="@{/history}">이력</a>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="hero">
+        <span class="tag">DIAGNOSIS REPORT</span>
+        <h1>AI 법률 분석 리포트</h1>
+        <p class="lead">QLoRA 파인튜닝 모델과 RAG 검색 결과를 바탕으로 도출된 법리 판단입니다.</p>
+    </section>
+
+    <section class="card">
+        <div class="verdict" th:classappend="${result.article != null} ? 'verdict-hit' : 'verdict-miss'">
+            <span th:if="${result.article != null}" th:text="|위반 의심 조항 — ${result.article}|">조항</span>
+            <span th:if="${result.article == null}">키워드 미검출. 추가 사실관계가 필요합니다.</span>
+        </div>
+
+        <h3>입력한 사실관계</h3>
+        <p class="quote" th:text="${result.fact}">fact</p>
+
+        <h3>법리 판단</h3>
+        <p th:text="${result.conclusion}">conclusion</p>
+
+        <h3>RAG 검색 결과</h3>
+        <p class="muted" th:text="${result.retrievedRule}">retrieved rule</p>
+
+        <div class="meta">
+            <span>응답 시간 <strong th:text="${result.latencyMs} + ' ms'">0 ms</strong></span>
+            <span>요청 시각 <strong th:text="${#temporals.format(result.createdAt, 'yyyy-MM-dd HH:mm:ss')}">-</strong></span>
+        </div>
+    </section>
+
+    <div class="actions">
+        <a th:href="@{/}" class="primary">다시 진단하기</a>
+        <a th:href="@{/history}" class="secondary">진단 이력 보기</a>
+    </div>
+</main>
+
+<footer class="footer">© 2026 WIDEA AI · SPRING BOOT × LLAMA-3 QLORA INFERENCE</footer>
+</body>
+</html>

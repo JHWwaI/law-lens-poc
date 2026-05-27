@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>진단 이력 · Law-Lens AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="topbar">
+    <div class="brand"><a th:href="@{/}">LAW-LENS.</a></div>
+    <nav>
+        <a th:href="@{/}">진단</a>
+        <a th:href="@{/history}">이력</a>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="hero">
+        <span class="tag">DIAGNOSIS HISTORY</span>
+        <h1>진단 이력 통계</h1>
+        <p class="lead">누적된 진단 결과를 조항별로 집계합니다. 학습된 4개 조항의 분포를 통해 서비스 사용 패턴을 확인할 수 있습니다.</p>
+    </section>
+
+    <section class="metrics">
+        <div><span>제3조 · 서면</span><strong th:text="${stats[0]}">0</strong></div>
+        <div><span>제11조 · 감액</span><strong th:text="${stats[1]}">0</strong></div>
+        <div><span>제13조 · 지연지급</span><strong th:text="${stats[2]}">0</strong></div>
+        <div><span>제12조의3 · 기술유용</span><strong th:text="${stats[3]}">0</strong></div>
+    </section>
+
+    <h2>최근 진단</h2>
+    <table class="history">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>요청 시각</th>
+            <th>조항</th>
+            <th>사실관계</th>
+            <th>응답</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="h : ${page.content}">
+            <td th:text="${h.id}">1</td>
+            <td th:text="${#temporals.format(h.createdAt, 'MM-dd HH:mm')}">-</td>
+            <td>
+                <span class="badge" th:if="${h.article != null}" th:text="${h.article}">제11조</span>
+                <span class="muted" th:if="${h.article == null}">—</span>
+            </td>
+            <td class="truncate" th:text="${h.fact}">fact</td>
+            <td th:text="${h.latencyMs} + ' ms'">0 ms</td>
+        </tr>
+        <tr th:if="${page.content.isEmpty()}">
+            <td colspan="5" class="muted center">아직 진단 이력이 없습니다.</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <nav class="pager" th:if="${page.totalPages > 1}">
+        <a th:if="${!page.first}" th:href="@{/history(page=${page.number - 1})}">← 이전</a>
+        <span th:text="|${page.number + 1} / ${page.totalPages}|">1 / 1</span>
+        <a th:if="${!page.last}" th:href="@{/history(page=${page.number + 1})}">다음 →</a>
+    </nav>
+</main>
+
+<footer class="footer">© 2026 WIDEA AI · SPRING BOOT × LLAMA-3 QLORA INFERENCE</footer>
+</body>
+</html>

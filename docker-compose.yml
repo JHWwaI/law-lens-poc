@@ -1,0 +1,70 @@
+name: law-lens
+
+services:
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  inference:
+    build:
+      context: ./5_inference_api
+    image: lawlens/inference:1.0.0
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      LAWLENS_DEVICE: cpu
+      LAWLENS_ADAPTER_PATH: /models/law_model_adapter
+      LAWLENS_DB_PATH: /models/faiss_index
+    volumes:
+      # 컨테이너에 학습 어댑터·FAISS 인덱스 마운트.
+      # 호스트 경로는 docker-compose 실행 디렉토리 기준.
+      - ./3_fine_tuning/law_model_adapter:/models/law_model_adapter:ro
+      - ./data/faiss_index:/models/faiss_index:ro
+      - huggingface-cache:/root/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 30
+      # 8B 모델 로드에 수 분 걸리므로 start_period 길게
+      start_period: 600s
+
+  web:
+    build:
+      context: ./6_spring_web
+    image: lawlens/web:1.0.0
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      LAWLENS_INFERENCE_BASE_URL: http://inference:8000
+      LAWLENS_AUDIT_KEY: ${LAWLENS_AUDIT_KEY:?LAWLENS_AUDIT_KEY env var is required (base64 of 32 bytes)}
+    depends_on:
+      redis:
+        condition: service_healthy
+      inference:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health/liveness"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  redis-data:
+  huggingface-cache:

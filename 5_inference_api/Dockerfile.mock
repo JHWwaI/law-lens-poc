@@ -1,0 +1,22 @@
+# Lightweight image for LAWLENS_MOCK_MODE=1. Skips torch/transformers.
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir \
+    fastapi>=0.110 \
+    "uvicorn[standard]>=0.29" \
+    pydantic>=2.6 \
+    langchain>=0.2 \
+    langchain-community>=0.2 \
+    langchain-huggingface>=0.0.3 \
+    sentence-transformers>=2.7 \
+    faiss-cpu>=1.8
+
+COPY main.py .
+
+ENV LAWLENS_MOCK_MODE=1 \
+    LAWLENS_DB_PATH=/models/faiss_index
+
+EXPOSE 8000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

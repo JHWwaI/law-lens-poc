@@ -1,0 +1,68 @@
+# ===== Secrets =====
+.env
+.env.local
+*.pem
+*.key
+*.crt
+
+# ===== Java / Maven =====
+6_spring_web/target/
+6_spring_web/.mvn/wrapper/maven-wrapper.jar
+6_spring_web/data/
+*.class
+*.jar
+!6_spring_web/.mvn/wrapper/maven-wrapper.jar
+*.war
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ===== Model weights / large artifacts =====
+3_fine_tuning/law_model_adapter/checkpoints/
+3_fine_tuning/law_model_adapter/runs/
+3_fine_tuning/results/
+data/faiss_index/
+**/*.safetensors
+**/*.bin
+**/*.pt
+**/*.pth
+
+# ===== Database =====
+*.mv.db
+*.trace.db
+*.lock.db
+6_spring_web/data/lawlens.*
+
+# ===== Logs =====
+*.log
+logs/
+
+# ===== IDE =====
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== W&B =====
+wandb/
+
+# ===== HuggingFace cache =====
+.cache/huggingface/
+
+# ===== Eval reports =====
+7_eval/eval_report.json

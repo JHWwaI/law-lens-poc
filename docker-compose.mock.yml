@@ -1,0 +1,21 @@
+# Overlay for mock mode — no 8B model weights needed.
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.mock.yml --env-file .env up -d --build
+#
+# This swaps the inference image to the lightweight Dockerfile.mock build
+# and starts it in LAWLENS_MOCK_MODE=1 (rule-based responses).
+services:
+  inference:
+    build:
+      context: ./5_inference_api
+      dockerfile: Dockerfile.mock
+    image: lawlens/inference:mock-1.0.0
+    environment:
+      LAWLENS_MOCK_MODE: "1"
+      LAWLENS_DB_PATH: /models/faiss_index
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s

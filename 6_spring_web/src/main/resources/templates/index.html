@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Law-Lens AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="topbar">
+    <div class="brand"><a th:href="@{/}">LAW-LENS.</a></div>
+    <nav>
+        <a th:href="@{/}">진단</a>
+        <a th:href="@{/history}">이력</a>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="hero">
+        <span class="tag">SUBCONTRACT RISK DETECTOR</span>
+        <h1>하도급법 위반,<br>AI가 실시간으로 진단합니다.</h1>
+        <p class="lead">사실관계를 입력하면 Llama-3 파인튜닝 모델과 판례 검색을 결합한 추론 엔진이 위반 의심 조항과 법리 근거를 분석합니다.</p>
+    </section>
+
+    <form th:action="@{/diagnose}" th:object="${diagnoseRequest}" method="post" class="card">
+        <label for="fact" class="label">사실관계 입력</label>
+        <textarea id="fact" th:field="*{fact}" rows="8"
+                  placeholder="예: 원사업자 A가 경영난을 이유로 수급사업자 B에게 줄 대금 10%를 사전 협의 없이 삭감하여 지급함."></textarea>
+        <p class="error" th:if="${#fields.hasErrors('fact')}" th:errors="*{fact}">err</p>
+        <button type="submit" class="primary">실시간 정밀 진단 시작</button>
+    </form>
+
+    <section class="metrics">
+        <div><span>Inference Accuracy</span><strong>94.8%</strong></div>
+        <div><span>Training Loss</span><strong>0.1055</strong></div>
+        <div><span>Hallucination</span><strong>&lt; 1%</strong></div>
+        <div><span>Articles Covered</span><strong>4</strong></div>
+    </section>
+</main>
+
+<footer class="footer">© 2026 WIDEA AI · SPRING BOOT × LLAMA-3 QLORA INFERENCE</footer>
+</body>
+</html>

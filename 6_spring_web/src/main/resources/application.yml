@@ -1,0 +1,80 @@
+server:
+  port: 8080
+  shutdown: graceful
+
+spring:
+  application:
+    name: law-lens-web
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  datasource:
+    url: jdbc:h2:file:./data/lawlens;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  thymeleaf:
+    cache: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000
+  task:
+    scheduling:
+      pool:
+        size: 2
+
+lawlens:
+  inference:
+    base-url: ${LAWLENS_INFERENCE_BASE_URL:http://localhost:8000}
+    timeout-ms: 15000
+    max-retries: 2
+  cache:
+    ttl-hours: 24
+    enabled: true
+  audit:
+    retention-days: 90
+    encryption-key-base64: ${LAWLENS_AUDIT_KEY:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      inference:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        sliding-window-size: 10
+  retry:
+    instances:
+      inference:
+        max-attempts: 3
+        wait-duration: 500ms
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+logging:
+  config: classpath:logback-spring.xml

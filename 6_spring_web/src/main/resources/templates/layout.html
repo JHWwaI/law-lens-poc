@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${title} ?: 'Law-Lens AI'">Law-Lens AI</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="topbar">
+    <div class="brand"><a th:href="@{/}">LAW-LENS.</a></div>
+    <nav>
+        <a th:href="@{/}">진단</a>
+        <a th:href="@{/history}">이력</a>
+        <a th:href="@{/actuator/health}">상태</a>
+    </nav>
+</header>
+<main class="container" th:insert="${content}">
+</main>
+<footer class="footer">© 2026 WIDEA AI · SPRING BOOT × LLAMA-3 QLORA INFERENCE</footer>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Diagnosis Report · Law-Lens</title>
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="brand"><a href="index.html">Law-Lens</a></div>
+    <nav>
+        <a href="index.html">진단</a>
+        <a href="history.html">이력</a>
+        <a href="index.html" class="cta">Try Demo</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <div class="inner">
+        <span class="eyebrow">Diagnosis Report</span>
+        <h1>분석 결과,<br><em>법리로 답합니다.</em></h1>
+        <p class="lead">QLoRA 파인튜닝 모델과 RAG 검색 결과를 바탕으로 도출된 법리 판단입니다.</p>
+    </div>
+</section>
+
+<section class="container narrow">
+    <div class="card">
+        <div class="verdict verdict-hit">
+            <span class="label-tag">위반 의심 조항</span>
+            <div>제11조 · 부당한 대금의 감액 금지</div>
+        </div>
+
+        <h3>입력한 사실관계</h3>
+        <p class="quote">원사업자 A가 경영난을 이유로 수급사업자 B에게 줄 대금 10%를 사전 협의 없이 삭감하여 지급함.</p>
+
+        <h3>법리 판단</h3>
+        <p>하도급법 제11조 위반입니다. 원사업자는 정당한 사유 없이 하도급대금을 감액할 수 없으며, 자금 사정의 악화는 대금 감액의 정당한 사유가 될 수 없습니다.</p>
+
+        <h3>RAG 검색 결과</h3>
+        <p class="muted">하도급법 제11조 (부당한 대금의 감액 금지)</p>
+
+        <div class="meta">
+            <span>응답 시간 <strong>2,418 ms</strong></span>
+            <span>요청 시각 <strong>2026-05-26 14:32:11</strong></span>
+        </div>
+    </div>
+
+    <div class="actions">
+        <a href="index.html" class="primary full">다시 진단하기</a>
+        <a href="history.html" class="secondary full">진단 이력 보기</a>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="brand-foot">Law-Lens</div>
+    <div>© 2026 Widea AI · Spring Boot × Llama-3 QLoRA Inference</div>
+</footer>
+
+</body>
+</html>
