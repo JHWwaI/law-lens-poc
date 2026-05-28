@@ -66,3 +66,8 @@ wandb/
 
 # ===== Eval reports =====
 7_eval/eval_report.json
+
+# docs PPT artifacts
+docs/*.pptx
+docs/_tmp_*
+docs/node_modules/
