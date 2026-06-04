@@ -1,139 +1,76 @@
-<div align="center">
+# Law-Lens — 하도급법 위반 AI 진단 PoC
 
-# Subcontract Risk Detector
+> **하도급 거래 사실관계를 입력하면, 도메인 파인튜닝(QLoRA)된 한국어 LLM + FAISS RAG가 위반 의심 조항(제3조 · 제11조 · 제13조 · 제12조의3)과 법리 근거를 진단하는 2-Tier 서비스**
 
-**Law-Lens AI — 하도급법 위반 실시간 진단 서비스**
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3.4-6DB33F) ![Java](https://img.shields.io/badge/Java-17-orange) ![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688) ![Model](https://img.shields.io/badge/Llama--3--Open--Ko--8B-QLoRA_4bit-purple) ![RAG](https://img.shields.io/badge/FAISS-ko--sroberta-blue) ![CI](https://img.shields.io/badge/CI-%EC%A0%95%ED%99%95%EB%8F%84_%E2%89%A50.85_%EA%B2%8C%EC%9D%B4%ED%8A%B8-success)
 
-[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3-6DB33F?style=flat-square&logo=springboot&logoColor=white)](.)
-[![Java](https://img.shields.io/badge/Java-17-007396?style=flat-square&logo=openjdk&logoColor=white)](.)
-[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](.)
-[![Llama-3-Ko](https://img.shields.io/badge/Llama--3--Open--Ko--8B-FF6B00?style=flat-square&logo=meta&logoColor=white)](.)
-[![QLoRA](https://img.shields.io/badge/QLoRA-9B59B6?style=flat-square)](.)
-[![FAISS](https://img.shields.io/badge/FAISS_RAG-005571?style=flat-square)](.)
-
-</div>
-
-하도급 거래 사실관계를 입력하면 **위반 의심 조항·법리 근거·상세 사유**를 분석해주는 웹 서비스. Llama-3-Open-Ko-8B를 QLoRA로 파인튜닝하고 FAISS RAG를 결합한 추론 엔진을 **Spring + FastAPI 2-Tier**로 분리했습니다.
-
-> 교육과제로 시작해 운영 관점의 안전장치(PII 마스킹·캐시·회귀 평가·환각 차단)를 적용한 PoC입니다. 범용 법률 질의로 확장한 버전: [Legal AI Assistant](https://github.com/JHWwaI/legal-ai-assistant).
+**📊 성능** (자체 평가셋, W&B 기록 기준): Training Loss **3.20 → 0.11 (−96.7%)** · 추론 성공률 **94.8%** · 환각률 **<1%** (화이트리스트 검증 기준)
 
 ---
 
-## 아키텍처
+## 🏗 아키텍처 & 기술 스택
 
 ```
-[브라우저]
-   │
+Browser ── Thymeleaf
    ▼
-[Spring Boot 3.3]  ─── JPA(H2) · Redis · Resilience4j
-   │ WebClient
-   ▼
-[FastAPI]          ─── Llama-3-Open-Ko-8B + QLoRA + FAISS RAG
+Spring Boot 3.3 (Java 17) :8080          ← 웹/이력/캐시/감사 계층
+   ├── PiiMasker (정규식 7종: 주민·사업자·전화·이메일·계좌·금액)
+   ├── Redis 캐시 (TTL 24h) + Resilience4j (CB 50% / retry 3)
+   ├── AuditLog 암호화 보관 (보존 90일)
+   ▼  WebClient (timeout 15s, X-Request-Id 전파)
+FastAPI :8000                             ← 추론 계층
+   ├── Llama-3-Open-Ko-8B + QLoRA 어댑터 (4bit, r=16, α=32)
+   ├── FAISS RAG (jhgan/ko-sroberta-multitask)
+   └── 조항 화이트리스트 검증 → 환각 차단
+Docker Compose (redis:7 + inference + web, healthcheck 기반 기동 순서)
 ```
 
-| | Spring (Java) | FastAPI (Python) |
-|---|---|---|
-| 담당 | UI · 이력 · 검증 · 캐시 · 장애 격리 | LLM 추론 · RAG 검색 |
-| 분리 이유 | 8B 모델을 Java에 끼울 수 없고, 둘의 장애 폭발 반경을 분리 |||
+**기술 선택 이유**
 
----
+- **2-Tier 분리**: GPU 추론(수분 로드, 무거움)과 웹 트랜잭션(가볍고 빠름)의 생애주기가 달라 장애 격리·독립 스케일링을 위해 분리
+- **QLoRA 4-bit**: 8B 모델을 단일 소비자 GPU에서 파인튜닝하기 위한 선택 (r=16, target: q_proj/v_proj)
+- **FAISS RAG 결합**: 파인튜닝만으로 부족한 법조문 정확성을 검색 근거로 보강
+- **Resilience4j + Redis**: 추론 서버 장애 시 회로 차단, 동일 질의 24h 캐시로 GPU 비용 절감
 
-## 성능
+## ⭐ 핵심 기여 및 성과 (STAR)
 
-| 지표 | 값 | 측정 방법 |
-|---|---|---|
-| Training Loss | **3.1973 → 0.1055** (−96.7%) | QLoRA SFT 학습 종료 시점 (W&B) |
-| 추론 성공률 | **94.8%** | 학습 외 평가셋 200건 article 일치율 |
-| 환각 발생률 | **<1%** | 화이트리스트 미일치 / 전체 응답 |
+### 1. 법률 도메인 LLM 파인튜닝 — Loss 96.7% 감소
+- **Task**: 범용 한국어 LLM은 하도급법 조항을 빈번히 혼동·날조
+- **Action**: 4개 조항 시나리오 기반 **합성 학습 데이터 500건** 파이프라인 구축 → `beomi/Llama-3-Open-Ko-8B`를 QLoRA(4-bit, max_seq 1024)로 파인튜닝, W&B로 실험 추적
+- **Result**: Training Loss **3.1973 → 0.1055**, 평가셋 추론 성공률 **94.8%**
 
-**모델 설정**: `beomi/Llama-3-Open-Ko-8B` + QLoRA(4-bit, r=16, α=32). 학습 데이터는 4개 조항(제3·11·13·12조의3) 합성 시나리오 500건.
+### 2. 환각(Hallucination) 구조적 차단 — 환각률 <1%
+- **Task**: LLM이 존재하지 않는 조항을 인용하는 법률 서비스 치명 리스크
+- **Action**: 학습 범위 4개 조항을 **화이트리스트**로 고정, 정규식으로 응답에서 조항 추출 후 미일치 시 `article=null` 처리 + reject 카운터 로깅. Spring 측 `ArticleValidator`로 **이중 검증**
+- **Result**: 허용 외 조항 인용을 응답 단계에서 100% 차단, 환각률 **<1%** 달성
 
----
+### 3. PR마다 모델 품질을 막는 회귀 평가 CI
+- **Task**: 프롬프트/모델 변경이 기존 정확도를 조용히 망가뜨리는 문제
+- **Action**: GitHub Actions에서 PR마다 평가셋 전체 실행 → **정확도 ≥ 0.85, p95 ≤ 8초** 미달 시 머지 차단 + 결과 PR 코멘트 자동 게시. GPU 없는 CI를 위해 **Mock 모드**(룰엔진 대체, heavy import lazy 로딩) 설계
+- **Result**: 모델 품질이 코드 리뷰처럼 **자동 게이트**로 관리되는 MLOps 체계 구축
 
-## 핵심 기능
+### 4. PII 보호 설계 — 마스킹 후 추론, 원본은 암호화 감사 로그만
+- **Action**: 정규식 7종으로 주민번호·계좌 등 마스킹 → **마스킹본만 캐시 키·추론·이력에 사용**, 원본은 AES 암호화 감사 로그(90일)에만 보관. 암호화 키 미설정 시 컨테이너 기동 자체를 차단(`:?required`)
+- **Result**: 민감정보가 모델/캐시로 유출되는 경로를 설계 단계에서 제거
 
-- **QLoRA 파인튜닝** — 4-bit 양자화로 8B 모델을 일반 GPU에서 학습
-- **FAISS RAG** — `jhgan/ko-sroberta-multitask` 임베딩으로 학습 외 사실관계도 법리 매칭
-- **PII 마스킹 + 감사 로그** — 정규식 마스킹 후 적재, 원본은 AES-256-GCM 컬럼 암호화 + 90일 보존
-- **Redis 응답 캐시** — SHA-256 키, 24h TTL, hit/miss 메트릭
-- **Correlation ID** — Spring MDC → WebClient → FastAPI까지 X-Request-Id 전파
-- **Article 화이트리스트** — 학습 외 조항 응답을 환각으로 차단, accept/reject 카운터 노출
-- **Resilience4j** — WebClient + Retry + CircuitBreaker + fallback
-- **회귀 평가 CI** — PR마다 평가셋 200건 자동 실행, 임계치 미달 시 차단
+## 🔧 Troubleshooting
 
----
+**1. 8B 모델 로드 중 healthcheck 조기 실패로 컨테이너 재시작 루프**
+- 원인: 모델 로드에 수 분 소요 → Docker healthcheck가 기동 전 실패 판정
+- 해결: `start_period: 600s` 설정 + web 컨테이너는 `depends_on: condition: service_healthy`로 기동 순서 보장
 
-## 실전 추론 테스트
+**2. GPU 없는 환경에서 통합 테스트 불가**
+- 원인: torch/모델 가중치 없이는 스택 부팅조차 안 됨 → CI·데모 막힘
+- 해결: `LAWLENS_MOCK_MODE=1` 시 모델 로드를 건너뛰고 키워드 룰엔진으로 응답하는 Mock 모드 구현, heavy import를 lazy로 이동 → **1분 내 전체 스택 기동**(`make up-mock`)
 
-| 입력 사실관계 | Law-Lens 판단 |
-|---|---|
-| A사가 경영난을 이유로 대금 10%를 일방적으로 삭감함 | **제11조** — 자금 사정 악화는 정당한 사유 아님 |
-| 하도급 계약서를 작업 시작 전까지 발급하지 않음 | **제3조** — 착수 전 서면 교부는 필수 의무 |
-| B사의 기술 자료를 협의 없이 제3자에 유출함 | **제12조의3** — 기술자료 유용은 징벌적 손해배상 대상 |
-
----
-
-## Quickstart
+## 🚀 Quick Start
 
 ```bash
-git clone https://github.com/JHWwaI/law-lens-poc.git
-cd law-lens-poc
-
-cp .env.example .env
-# .env의 LAWLENS_AUDIT_KEY를 'openssl rand -base64 32' 결과로 교체
-
-make up-mock     # 가중치 없이 풀스택 데모 (1분)
-# 또는 make up   # 실제 모델 로드 (5~10분)
-
-# 웹: http://localhost:8080
-# 추론: http://localhost:8000/health
-# 평가: make eval
+make up-mock   # GPU 불필요, ~1분 (웹 :8080, 추론 :8000)
+make up        # 실제 8B 모델, 5~10분
 ```
 
-호스트에서 직접 띄우려면: `5_inference_api/run.bat` + `6_spring_web/run.bat` (Java 17, Python 3.11 필요).
+## ⚠️ PoC 한계 (의도적 보류)
 
----
-
-## 프로젝트 구조
-
-```
-.
-├── 1_data_pipeline/   합성 데이터 500건 생성
-├── 2_vector_db/       FAISS 인덱스
-├── 3_fine_tuning/     QLoRA 학습 + 어댑터
-├── 5_inference_api/   FastAPI 추론 서비스 (+ Mock 모드)
-├── 6_spring_web/      Spring Boot + JPA + Redis + PII 마스킹
-├── 7_eval/            평가셋 200건 + run_eval.py
-├── docker-compose.yml + Makefile + .env.example
-└── .github/workflows/ PR 회귀 평가
-```
-
----
-
-## 한계 (PoC 단계 보류 항목)
-
-- 합성 데이터 학습 → 실판례 기반 데이터 보강 필요
-- 정규식 PII 마스킹 → NER 기반(Presidio·KoNLPy) 보강 필요
-- 환경변수 키 관리 → KMS/Vault + 키 로테이션 필요
-- H2 + ddl-auto → Postgres + Flyway 필요
-- 인증·rate limiting·OpenTelemetry 미적용
-
-> 면접에서 동일 질문 받았을 때 같은 답을 합니다. "운영 진입 시 손볼 영역"으로 명시.
-
----
-
-## Result · Insight
-
-- ML 추론과 비즈니스 로직을 분리하면 장애 폭발 반경이 줄어들지만 네트워크 홉·디버깅 복잡도가 늘어남 — 트레이드오프 명확히 인지
-- 자유 텍스트 LLM 응답을 화이트리스트·스키마로 후처리해야 운영 가능한 수준이 됨
-- 합성 데이터의 일반화 한계는 RAG로 일부 보완 가능, 다만 어휘 분포 격차는 여전히 평가셋에서 드러남
-
----
-
-## 기술스택
-
-**백엔드**: Spring Boot 3.3 · Java 17 · Spring Data JPA · Thymeleaf · Resilience4j · WebClient · H2
-**추론**: FastAPI · Uvicorn · Docker
-**모델**: `beomi/Llama-3-Open-Ko-8B` · QLoRA (PEFT, TRL) · FAISS · `jhgan/ko-sroberta-multitask`
-**관측**: Micrometer · Prometheus · Logback JSON · Correlation ID
-**학습 추적**: Weights & Biases · NVIDIA A100 / T4
+- 합성 데이터 → 실판례 확장 예정 · 정규식 PII → NER(Presidio) 고도화 · H2 → Postgres+Flyway · 인증/OTel 미적용
+- 확장 버전: [JHWwaI/legal-ai-assistant](https://github.com/JHWwaI/legal-ai-assistant)
